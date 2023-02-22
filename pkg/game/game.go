@@ -55,14 +55,16 @@ func (g *Game) validateBoard() bool {
 func (g *Game) validateMove(next *Game) bool {
 	moves := 0
 	for i := 0; i < BOARD_LEN; i++ {
-		if g.Board[i] != next.Board[i] {
+		if g.Board[i] == EMPTY && g.Board[i] != next.Board[i] {
 			moves++
-			if g.Board[i] != '-' && next.Board[i] != next.clientSymbol {
-				return false
-			}
 			if moves > 1 {
 				return false
 			}
+			if next.Board[i] != g.clientSymbol {
+				return false
+			}
+		} else if g.Board[i] != next.Board[i] {
+			return false
 		}
 	}
 	return true
@@ -132,7 +134,7 @@ func (g *Game) checkDiagonal() bool {
 }
 
 func (g *Game) checkDraw() bool {
-	if emptycells := g.findEmptyCells(); len(emptycells) == 0 {
+	if emptycells := g.findEmptyCells(); len(emptycells) == 0 && g.Status == STATUS_RUNNING {
 		g.Status = STATUS_DRAW
 		return true
 	}
@@ -140,10 +142,8 @@ func (g *Game) checkDraw() bool {
 }
 
 func (g *Game) updateStatus() {
-	if g.checkRows() ||
+	_ = g.checkRows() ||
 		g.checkCols() ||
 		g.checkDiagonal() ||
-		g.checkDraw() {
-		return
-	}
+		g.checkDraw()
 }
