@@ -2,46 +2,65 @@ package game
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type Store struct {
-	Games map[uuid.UUID]*Game
+	Games           map[uuid.UUID]*Game
+	randomGenerator *rand.Rand
 }
 
 func NewStore() *Store {
 	return &Store{
-		Games: make(map[uuid.UUID]*Game),
+		Games:           make(map[uuid.UUID]*Game),
+		randomGenerator: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
 func (s *Store) GetAllGames(c *gin.Context) {
 	games := make([]*Game, 0)
+
 	for _, g := range s.Games {
 		games = append(games, g)
 	}
+
 	c.JSON(http.StatusOK, games)
 }
 
 func (s *Store) CreateGame(c *gin.Context) {
-	newGame := Game{}
+	newGame := Game{
+		randomGenerator: s.randomGenerator,
+	}
 
 	if err := c.ShouldBindJSON(&newGame); err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"reason": "Invalid input length"})
+		return
+	}
+
+	newGame.Board = strings.ToUpper(newGame.Board)
+
+	if !newGame.validateFirstInput() || !newGame.validateBoard() {
 		c.AbortWithStatusJSON(400, gin.H{"reason": "Invalid board input"})
 		return
 	}
 
 	newGame.ID = uuid.New()
 	newGame.Status = STATUS_RUNNING
-	//validateBoard
+
 	s.Games[newGame.ID] = &newGame
 
-	location := fmt.Sprintf("/api/v1/games/%s", newGame.ID.String())
+	newGame.setServerSymbol()
+	newGame.makeCounterMove()
 
+	location := fmt.Sprintf("http://127.0.0.1:8080/api/v1/games/%s", newGame.ID.String())
 	c.Header("Location", location)
+
 	c.JSON(201, newGame)
 }
 
@@ -61,6 +80,7 @@ func (s *Store) DeleteGame(c *gin.Context) {
 	}
 
 	delete(s.Games, game.ID)
+
 	c.JSON(200, gin.H{"description": "Game successfully deleted"})
 }
 
@@ -87,12 +107,35 @@ func (s *Store) MakeMove(c *gin.Context) {
 		return
 	}
 
-	newGame := Game{}
-	if err := c.ShouldBindJSON(&newGame); err != nil {
+	newGame := &Game{}
+
+	if err := c.ShouldBindJSON(newGame); err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"reason": "Invalid input length"})
+		return
+	}
+
+	newGame.Board = strings.ToUpper(newGame.Board)
+
+	if !game.validateBoard() || !game.validateMove((newGame)) {
 		c.AbortWithStatusJSON(400, gin.H{"reason": "Invalid board input"})
 		return
 	}
+
 	game.Board = newGame.Board
+
+	game.updateStatus()
+	if game.Status != STATUS_RUNNING {
+		c.JSON(200, game)
+		return
+	}
+
+	game.makeCounterMove()
+
+	game.updateStatus()
+	if game.Status != STATUS_RUNNING {
+		c.JSON(200, game)
+		return
+	}
 
 	c.JSON(200, game)
 }
