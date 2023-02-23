@@ -2,30 +2,31 @@ package game
 
 import (
 	"math/rand"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGame_setServerSymbol(t *testing.T) {
 	tests := []struct {
 		name        string
 		board       string
-		expectedSym byte
+		expectedSymbol byte
 	}{
 		{
 			name:        "empty board",
 			board:       "---------",
-			expectedSym: SYMBOL_O,
+			expectedSymbol: SYMBOL_O,
 		},
 		{
 			name:        "board with 'O'",
 			board:       "---O-----",
-			expectedSym: SYMBOL_X,
+			expectedSymbol: SYMBOL_X,
 		},
 		{
 			name:        "board with 'X'",
 			board:       "---X-----",
-			expectedSym: SYMBOL_O,
+			expectedSymbol: SYMBOL_O,
 		},
 	}
 
@@ -37,33 +38,34 @@ func TestGame_setServerSymbol(t *testing.T) {
 
 			g.setServerSymbol()
 
-			if g.serverSymbol != tt.expectedSym {
+			/*if g.serverSymbol != tt.expectedSym {
 				t.Errorf("Expected server symbol to be %c, but got %c", tt.expectedSym, g.serverSymbol)
-			}
+			}*/
+			assert.Equal(t, g.serverSymbol, tt.expectedSymbol)
 		})
 	}
 }
 
 func TestGame_findEmptyCells(t *testing.T) {
 	tests := []struct {
-		name  string
-		board string
-		want  []int
+		name     string
+		board    string
+		expected []int
 	}{
 		{
-			name:  "empty board",
-			board: "---------",
-			want:  []int{0, 1, 2, 3, 4, 5, 6, 7, 8},
+			name:     "empty board",
+			board:    "---------",
+			expected: []int{0, 1, 2, 3, 4, 5, 6, 7, 8},
 		},
 		{
-			name:  "single empty place",
-			board: "XOXOXOX-O",
-			want:  []int{7},
+			name:     "single empty place",
+			board:    "XOXOXOX-O",
+			expected: []int{7},
 		},
 		{
-			name:  "full",
-			board: "XOXOXOXOO",
-			want:  []int{},
+			name:     "full",
+			board:    "XOXOXOXOO",
+			expected: []int{},
 		},
 	}
 	for _, tt := range tests {
@@ -71,9 +73,7 @@ func TestGame_findEmptyCells(t *testing.T) {
 			g := &Game{
 				Board: tt.board,
 			}
-			if got := g.findEmptyCells(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Game.findEmptyCells() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, g.findEmptyCells(), tt.expected)
 		})
 	}
 }
@@ -103,9 +103,7 @@ func TestGame_makeCounterMove(t *testing.T) {
 				serverSymbol:    SYMBOL_O,
 			}
 			g.makeCounterMove()
-			if tt.expectedBoard != g.Board {
-				t.Errorf("Expected %s, got %s", tt.expectedBoard, g.Board)
-			}
+			assert.Equal(t, g.Board, tt.expectedBoard)
 		})
 	}
 }
@@ -152,9 +150,7 @@ func TestGame_validateFirstInput(t *testing.T) {
 			g := &Game{
 				Board: tt.board,
 			}
-			if got := g.validateFirstInput(); got != tt.expected {
-				t.Errorf("Game.validateFirstInput() = %v, expected %v", got, tt.expected)
-			}
+			assert.Equal(t, g.validateFirstInput(), tt.expected)
 		})
 	}
 }
@@ -211,9 +207,7 @@ func TestGame_validateBoard(t *testing.T) {
 			g := &Game{
 				Board: tt.board,
 			}
-			if got := g.validateBoard(); got != tt.expected {
-				t.Errorf("Game.validateBoard() = %v, expected %v", got, tt.expected)
-			}
+			assert.Equal(t, g.validateBoard(), tt.expected)
 		})
 	}
 }
@@ -278,9 +272,7 @@ func TestGame_validateMove(t *testing.T) {
 			next := &Game{
 				Board: tt.next,
 			}
-			if got := g.validateMove(next); got != tt.expected {
-				t.Errorf("Game.validateMove() = %v, expected %v", got, tt.expected)
-			}
+			assert.Equal(t, g.validateMove(next), tt.expected)
 		})
 	}
 }
@@ -332,9 +324,7 @@ func TestGame_checkRows(t *testing.T) {
 			g := &Game{
 				Board: tt.board,
 			}
-			if got := g.checkRows(); got != tt.expected {
-				t.Errorf("Game.checkRows() = %v, expected %v", got, tt.expected)
-			}
+			assert.Equal(t, g.checkRows(), tt.expected)
 		})
 	}
 }
@@ -386,9 +376,7 @@ func TestGame_checkCols(t *testing.T) {
 			g := &Game{
 				Board: tt.board,
 			}
-			if got := g.checkCols(); got != tt.expected {
-				t.Errorf("Game.checkCols() = %v, expected %v", got, tt.expected)
-			}
+			assert.Equal(t, g.checkCols(), tt.expected)
 		})
 	}
 }
@@ -435,9 +423,7 @@ func TestGame_checkDiagonal(t *testing.T) {
 			g := &Game{
 				Board: tt.board,
 			}
-			if got := g.checkDiagonal(); got != tt.expected {
-				t.Errorf("Game.checkDiagonal() = %v, expected %v", got, tt.expected)
-			}
+			assert.Equal(t, g.checkDiagonal(), tt.expected)
 		})
 	}
 }
@@ -480,9 +466,7 @@ func TestGame_checkDraw(t *testing.T) {
 				Board:  tt.board,
 				Status: tt.status,
 			}
-			if got := g.checkDraw(); got != tt.expected {
-				t.Errorf("Game.checkDraw() = %v, expected %v", got, tt.expected)
-			}
+			assert.Equal(t, g.checkDraw(), tt.expected)
 		})
 	}
 }

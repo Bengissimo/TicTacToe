@@ -14,13 +14,23 @@ import (
 type Store struct {
 	Games           map[uuid.UUID]*Game
 	randomGenerator *rand.Rand
+	Router          *gin.Engine
 }
 
 func NewStore() *Store {
-	return &Store{
+	gs := &Store{
 		Games:           make(map[uuid.UUID]*Game),
 		randomGenerator: rand.New(rand.NewSource(time.Now().UnixNano())),
+		Router:          gin.Default(),
 	}
+
+	gs.Router.GET("api/v1/games", gs.GetAllGames)
+	gs.Router.GET("api/v1/games/:game_id", gs.GetSingleGame)
+	gs.Router.POST("api/v1/games", gs.CreateGame)
+	gs.Router.PUT("api/v1/games/:game_id", gs.MakeMove)
+	gs.Router.DELETE("api/v1/games/:game_id", gs.DeleteGame)
+
+	return gs
 }
 
 func (s *Store) GetAllGames(c *gin.Context) {
@@ -94,7 +104,7 @@ func (s *Store) getGameFromContext(c *gin.Context) *Game {
 
 	game, ok := s.Games[gameID]
 	if !ok {
-		c.AbortWithStatusJSON(404, gin.H{"reason": "Invalid ID"})
+		c.AbortWithStatusJSON(404, gin.H{"reason": "Game not found"})
 		return nil
 	}
 
