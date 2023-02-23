@@ -132,7 +132,6 @@ func (s *Store) MakeMove(c *gin.Context) {
 	}
 
 	game.Board = newGame.Board
-	fmt.Printf("%s\n", game.Board)
 
 	game.updateStatus()
 	if game.Status != STATUS_RUNNING {

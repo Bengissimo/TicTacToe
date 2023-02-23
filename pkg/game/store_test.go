@@ -270,7 +270,6 @@ func TestStore_MakeMove(t *testing.T) {
 
 			resp := w.Result()
 			body, _ := io.ReadAll(resp.Body)
-			fmt.Printf("%s\n", string(body))
 
 			gameOngoing := &Game{}
 			if err := json.Unmarshal(body, gameOngoing); err != nil {
