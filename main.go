@@ -7,5 +7,5 @@ import (
 func main() {
 	gs := game.NewStore()
 
-	gs.Router.Run("localhost:8080")
+	gs.Router.Run("0.0.0.0:8080")
 }
