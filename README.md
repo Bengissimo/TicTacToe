@@ -88,3 +88,5 @@ make test
 ```
 ./play.sh
 ```
+## To Do
+Currently server makes only random moves. Game logic needs to be improved.
