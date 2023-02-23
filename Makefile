@@ -3,7 +3,7 @@ NAME=tictactoe
 all: run
 
 ${NAME}:
-	go build -o ${NAME} main.go
+	go build -o ${NAME} cmd/main.go
 
 run: ${NAME}
 	./${NAME}

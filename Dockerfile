@@ -8,7 +8,7 @@ COPY go.sum .
 RUN go mod download
 
 COPY . .
-RUN go build  -o tictactoe main.go
+RUN go build  -o tictactoe cmd/main.go
 
 FROM scratch
 
