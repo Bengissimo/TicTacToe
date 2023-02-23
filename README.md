@@ -69,7 +69,7 @@ $ curl -X PUT -d '{"board":"XOXXXOOOX"}' http://127.0.0.1:8080/api/v1/games/3667
 ## Prerequisites
 - Golang version 1.19 or higher
 - `make`
-- `jq` (to run play.sh)
+- `jq` (play.sh script uses)
 
 ## Usage
 ```
