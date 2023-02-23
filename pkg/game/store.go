@@ -126,12 +126,13 @@ func (s *Store) MakeMove(c *gin.Context) {
 
 	newGame.Board = strings.ToUpper(newGame.Board)
 
-	if !game.validateBoard() || !game.validateMove((newGame)) {
+	if !newGame.validateBoard() || !game.validateMove((newGame)) {
 		c.AbortWithStatusJSON(400, gin.H{"reason": "Invalid board input"})
 		return
 	}
 
 	game.Board = newGame.Board
+	fmt.Printf("%s\n", game.Board)
 
 	game.updateStatus()
 	if game.Status != STATUS_RUNNING {

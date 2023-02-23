@@ -27,6 +27,7 @@ func callCreateGame(router *gin.Engine, input string) (*Game, *httptest.Response
 	if err := json.Unmarshal(body, game); err != nil {
 		return nil, nil, err
 	}
+
 	return game, w, nil
 }
 
@@ -130,7 +131,7 @@ func TestGame_CreateandGetGames(t *testing.T) {
 			//CreateGame
 			game, w, err := callCreateGame(store.Router, tt.input)
 			if err != nil {
-				assert.Fail(t, "What might be reason here")
+				assert.Fail(t, "Game create failed")
 			}
 
 			assert.Equal(t, tt.wantCreateCode, w.Code)
@@ -157,26 +158,26 @@ func TestGame_CreateandGetGames(t *testing.T) {
 
 func TestStore_DeleteGames(t *testing.T) {
 	tests := []struct {
-		name            string
-		url             string
-		wantCode  int
+		name     string
+		url      string
+		wantCode int
 		wantBody string
 	}{
 		{
-			name:            "valid",
-			wantCode:  200,
+			name:     "valid",
+			wantCode: 200,
 			wantBody: `{"description":"Game successfully deleted"}`,
 		},
 		{
-			name:            "invalid UUID",
-			url:             "http://127.0.0.1:8080/api/v1/games/qweqwe",
-			wantCode:  400,
+			name:     "invalid UUID",
+			url:      "http://127.0.0.1:8080/api/v1/games/qweqwe",
+			wantCode: 400,
 			wantBody: `{"reason":"UUID cannot be parsed"}`,
 		},
 		{
-			name:            "Wrong ID",
-			url:             "http://127.0.0.1:8080/api/v1/games/00000000-0000-0000-0000-000000000000",
-			wantCode:  404,
+			name:     "Wrong ID",
+			url:      "http://127.0.0.1:8080/api/v1/games/00000000-0000-0000-0000-000000000000",
+			wantCode: 404,
 			wantBody: `{"reason":"Game not found"}`,
 		},
 	}
@@ -196,6 +197,88 @@ func TestStore_DeleteGames(t *testing.T) {
 
 			assert.Equal(t, tt.wantCode, w.Code)
 			assert.Equal(t, tt.wantBody, w.Body.String())
+		})
+	}
+}
+
+func TestStore_MakeMove(t *testing.T) {
+	tests := []struct {
+		name       string
+		board      string
+		move       string
+		wantCode   int
+		wantStatus string
+	}{
+		{
+			name:       "X wins",
+			board:      "OXXOXOXO-",
+			move:       `{"board":"OXXOXOXOX"}`,
+			wantCode:   200,
+			wantStatus: STATUS_X_WON,
+		},
+		{
+			name:       "O wins",
+			board:      "XOOXOXOO-",
+			move:       `{"board":"XOOXOXOOX"}`,
+			wantCode:   200,
+			wantStatus: STATUS_O_WON,
+		},
+		{
+			name:       "Draw",
+			board:      "OXOXOXXO-",
+			move:       `{"board":"OXOXOXXOX"}`,
+			wantCode:   200,
+			wantStatus: STATUS_DRAW,
+		},
+		{
+			name:       "running",
+			board:      "---X-O---",
+			move:       `{"board":"---X-OX--"}`,
+			wantCode:   200,
+			wantStatus: STATUS_RUNNING,
+		},
+		{
+			name:       "invalid input length",
+			board:      "---X-O---",
+			move:       `{"board":"----X-OX--"}`,
+			wantCode:   400,
+			wantStatus: "",
+		},
+		{
+			name:       "invalid board input",
+			board:      "---X-O---",
+			move:       `{"board":"XXXX-O---"}`,
+			wantCode:   400,
+			wantStatus: "",
+		},
+	}
+
+	store := NewStore()
+
+	game, _, _ := callCreateGame(store.Router, `{"board":"---------"}`)
+	url := fmt.Sprintf("http://127.0.0.1:8080/api/v1/games/%s", game.ID.String())
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store.Games[game.ID].Board = tt.board
+			store.Games[game.ID].Status = STATUS_RUNNING
+
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("PUT", url, bytes.NewBufferString(tt.move))
+
+			store.Router.ServeHTTP(w, req)
+
+			resp := w.Result()
+			body, _ := io.ReadAll(resp.Body)
+			fmt.Printf("%s\n", string(body))
+
+			gameOngoing := &Game{}
+			if err := json.Unmarshal(body, gameOngoing); err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tt.wantCode, w.Code)
+			assert.Equal(t, tt.wantStatus, gameOngoing.Status)
 		})
 	}
 }

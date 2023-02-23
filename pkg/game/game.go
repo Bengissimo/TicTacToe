@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 
@@ -79,7 +80,7 @@ func (g *Game) makeCounterMove() {
 func (g *Game) findEmptyCells() []int {
 	emptyCells := make([]int, 0)
 	for i, cell := range g.Board {
-		if cell == '-' {
+		if cell == EMPTY {
 			emptyCells = append(emptyCells, i)
 		}
 	}
@@ -104,6 +105,7 @@ func (g *Game) checkRows() bool {
 	for i := 0; i < 9; i += 3 {
 		if g.Board[i] != EMPTY && g.Board[i] == g.Board[i+1] && g.Board[i+1] == g.Board[i+2] {
 			g.setStatus(i)
+			fmt.Printf("row %d\n", i)
 			return true
 		}
 	}
@@ -114,6 +116,7 @@ func (g *Game) checkCols() bool {
 	for i := 0; i < 3; i++ {
 		if g.Board[i] != EMPTY && g.Board[i] == g.Board[i+3] && g.Board[i+3] == g.Board[i+6] {
 			g.setStatus(i)
+			fmt.Printf("col %d\n", i)
 			return true
 		}
 	}
@@ -123,6 +126,7 @@ func (g *Game) checkCols() bool {
 func (g *Game) checkDiagonal() bool {
 	if g.Board[0] != EMPTY && g.Board[0] == g.Board[4] && g.Board[4] == g.Board[8] {
 		g.setStatus(0)
+		fmt.Printf("diag 1\n")
 		return true
 	}
 
